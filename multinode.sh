@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --partition=P2
 #SBATCH --job-name=finetune
-#SBATCH -o logs/finetune/%x-%j.out
+#SBATCH -o logs/pjm/finetune/%x-%j.out
 
 source ~/.bashrc
 source /home/s1/jypark/anaconda3/bin/activate
@@ -23,4 +23,4 @@ export OMP_NUM_THREADS=16
 srun --jobid $SLURM_JOBID bash -c 'torchrun \
  --nproc-per-node $GPUS_PER_NODE --nnodes $SLURM_NNODES --node_rank $SLURM_PROCID \
  --master_addr $MASTER_ADDR --master_port $MASTER_PORT \
-test.py'
+train.py'

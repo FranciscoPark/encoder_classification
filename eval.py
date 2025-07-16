@@ -5,13 +5,21 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = logits.argmax(-1)
+
     acc = accuracy_score(labels, predictions)
-    return {"accuracy": acc}
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average="binary")
+
+    return {
+        "accuracy": acc,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1
+    }
 
 # Load tokenizer and model from your output directory
 #model_dir = "microsoft/deberta-v3-small"  # or "./deberta-test-output/checkpoint-1000"

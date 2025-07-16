@@ -9,41 +9,31 @@ import wandb
 import os
 
 if __name__ == "__main__":
-    #model_name = "microsoft/deberta-v3-small"
-    model_name ="microsoft/deberta-v3-large"
+    #models = ["microsoft/deberta-v3-small","microsoft/deberta-v3-base","microsoft/deberta-v3-large"]
+    model_name = "microsoft/deberta-v3-small"
+    #model_name ="microsoft/deberta-v3-large"
     #model_name = "microsoft/deberta-v3-base"
     dataset = load_dataset("glue", "sst2")
 
     # Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     def tokenize(ex):
-        return tokenizer(ex["sentence"], padding="max_length", truncation=True, max_length=256)
+        return tokenizer(ex["sentence"], padding="max_length", truncation=True, max_length=1024)
 
     encoded_dataset = dataset.map(tokenize, batched=True)
     encoded_dataset = encoded_dataset.rename_column("label", "labels")
     encoded_dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "labels"])
 
     # Model
-    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=3)
 
     # Init wandb
-    wandb.init(project="deberta-test", name="quick-test", mode="online" if int(os.environ.get("RANK", 0)) == 0 else "disabled")
+    wandb.init(project="pjm_encoder", name=model_name, mode="online" if int(os.environ.get("RANK", 0)) == 0 else "disabled")
     
-    #freeze all, just lm head
-    # for param in model.deberta.parameters():
-    #     param.requires_grad = False
-    
-    #check frozen layers
-    # for name, param in model.named_parameters():
-    #     if param.requires_grad:
-    #         print(f"TRAINABLE: {name}")
-    #     else:
-    #         print(f"FROZEN:    {name}")
-
 
     # TrainingArguments
     training_args = TrainingArguments(
-        output_dir="./deberta-test-output",
+        output_dir="./encoder/"+model_name,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
         learning_rate=2e-5,
